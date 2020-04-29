@@ -1,0 +1,34 @@
+'If you would rather create from scratch, paste this code into a new spreadsheet. Your spreadsheet should have target Zlayers listed in Column A (starting on row 2) and have the same decimal precision as what is found in your gCode.  Column B should have the corresponding extruder temp. The code runs through the gCode looking for instances of matching Z layers, and inserts a new line adding the target extruder temp.
+
+
+Sub UpdateTempsinGcode()
+
+Dim sBuf As String
+Dim sTemp As String
+Dim iFileNum As Integer
+Dim sFileName As String
+
+'Select gCode file
+sFileName = Application.GetOpenFilename()
+
+iFileNum = FreeFile
+Open sFileName For Input As iFileNum
+
+Do Until EOF(iFileNum)
+    Line Input #iFileNum, sBuf
+    sTemp = sTemp & sBuf & vbCrLf
+Loop
+Close iFileNum
+
+'Update this part if your slicer handles temp changes differently
+lastlayer = ActiveWorkbook.Worksheets("Sheet1").Range("A1").End(xlDown).Row
+For I = 2 To lastlayer
+    sTemp = Replace(sTemp, "G1 Z" & Cells(I, 1).Value, "M104 S" & Cells(I, 2).Value & Chr(13) & Chr(10) & "G1 Z" & Cells(I, 1).Value)
+Next I
+
+iFileNum = FreeFile
+Open sFileName For Output As iFileNum
+Print #iFileNum, sTemp
+Close iFileNum
+
+End Sub
